@@ -21,6 +21,9 @@ class ResultDisplayScreen extends StatefulWidget {
 }
 
 class ResultDisplayScreenState extends State<ResultDisplayScreen> {
+  /// --- Initialisation de la page ---
+  // Cette méthode est appelée lors de l'initialisation de la page.
+  // Elle récupère les résultats en utilisant les paramètres fournis.
   @override
   void initState() {
     super.initState();
@@ -33,52 +36,57 @@ class ResultDisplayScreenState extends State<ResultDisplayScreen> {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  final resultController = Provider.of<ResultController>(context);
-  final authController = Provider.of<AuthController>(context);
+  /// --- Construction de l'interface utilisateur ---
+  // Cette méthode construit l'interface de la page en fonction de l'état du contrôleur de résultats.
+  @override
+  Widget build(BuildContext context) {
+    final resultController = Provider.of<ResultController>(context);
+    final authController = Provider.of<AuthController>(context);
 
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Résultats"),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            authController.logout();  // Log out the user
-            Navigator.pushReplacementNamed(context, '/login');  // Navigate to login screen
-          },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Résultats"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              authController.logout();  // Déconnexion de l'utilisateur
+              Navigator.pushReplacementNamed(context, '/login');  // Navigation vers la page de connexion
+            },
+          ),
+        ],
+      ),
+      body: resultController.isLoading
+          ? const Center(child: CircularProgressIndicator())  // Affichage du spinner pendant le chargement
+          : resultController.errorMessage.isNotEmpty
+          ? Center(
+        child: Text(
+          resultController.errorMessage,  // Affiche le message d'erreur en cas d'échec
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
         ),
-      ],
-    ),
-    body: resultController.errorMessage.isNotEmpty
-        ? Center(
-            child: Text(
-              resultController.errorMessage,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
-            ),
-          )
-        : resultController.results.isEmpty
-            ? const Center(
-                child: Text(
-                  "",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 30, 10, 206)),
-                ),
-              )
-            : ListView.builder(
-                itemCount: resultController.results.length,
-                itemBuilder: (context, index) {
-                  final result = resultController.results[index];
-                  return _buildResultCard(result);
-                },
-              ),
-  );
-}
+      )
+          : resultController.results.isEmpty
+          ? const Center(
+        child: Text(
+          "Aucun résultat trouvé",  // Affiche un message quand il n'y a aucun résultat
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 30, 10, 206)),
+        ),
+      )
+          : ListView.builder(
+        itemCount: resultController.results.length,
+        itemBuilder: (context, index) {
+          final result = resultController.results[index];
+          return _buildResultCard(result);  // Affiche chaque résultat sous forme de carte
+        },
+      ),
+    );
+  }
 
-
+  /// --- Construction de la carte de résultat ---
+  // Cette méthode crée une carte pour chaque résultat et l'affiche dans la liste.
   Widget _buildResultCard(ResultModel result) {
     return Card(
-      color: getColorForEnseigne(result.title),
+      color: getColorForEnseigne(result.title),  // Détermine la couleur de la carte en fonction de l'enseigne
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
@@ -95,6 +103,7 @@ Widget build(BuildContext context) {
               ),
             ),
             const SizedBox(height: 8),
+            // Affichage des statistiques des lots
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -103,6 +112,7 @@ Widget build(BuildContext context) {
               ],
             ),
             const Divider(color: Colors.white),
+            // Affichage des statistiques de traitement
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -113,6 +123,7 @@ Widget build(BuildContext context) {
               ],
             ),
             const Divider(color: Colors.white),
+            // Affichage du total et des recommandations
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -126,6 +137,8 @@ Widget build(BuildContext context) {
     );
   }
 
+  /// --- Construction d'une colonne de statistiques ---
+  // Cette méthode génère une colonne pour afficher un titre et une valeur.
   Widget _buildColumn(String title, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,6 +163,8 @@ Widget build(BuildContext context) {
     );
   }
 
+  /// --- Récupération de la couleur en fonction de l'enseigne ---
+  // Cette méthode renvoie la couleur associée à une enseigne donnée.
   Color getColorForEnseigne(String enseigne) {
     switch (enseigne.toUpperCase()) {
       case "REDER":
@@ -177,7 +192,7 @@ Widget build(BuildContext context) {
       case "RED LAD":
         return const Color(0xFF6D4C41);
       default:
-        return Colors.grey;
+        return Colors.grey;  // Valeur par défaut si l'enseigne n'est pas reconnue
     }
   }
 }

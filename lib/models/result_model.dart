@@ -23,27 +23,38 @@ class ResultModel {
     required this.reco,
   });
 
-  factory ResultModel.fromJson(Map<String, dynamic> json) {
-      // Log de la réponse brute
+  // Fonction utilitaire pour éviter les négatifs
+  static int _getNonNegativeValue(dynamic value) {
+    return (value ?? 0) < 0 ? 0 : value;
+  }
 
-  
+  factory ResultModel.fromJson(Map<String, dynamic> json) {
+    // Log de la réponse brute (en option, à ajouter si nécessaire)
+    // print("Réponse brute : $json");
+
     // Récupération et correction des valeurs pour éviter les négatifs
-    int nbLotencours = (json['nbLotencours'] ?? 0) < 0 ? 0 : json['nbLotencours'];
-    int plisencours = (json['plisencours'] ?? 0) < 0 ? 0 : json['plisencours'];
-    int lotjour = (json['lotjour'] ?? 0) < 0 ? 0 : json['lotjour'];
-    int plijour = (json['plijour'] ?? 0) < 0 ? 0 : json['plijour'];
+    int nbLotencours = _getNonNegativeValue(json['nbLotencours']);
+    int plisencours = _getNonNegativeValue(json['plisencours']);
+    int lotjour = _getNonNegativeValue(json['lotjour']);
+    int plijour = _getNonNegativeValue(json['plijour']);
+    int pliTraites = _getNonNegativeValue(json['pliTraites']);
+    int nbPlinonTraites = _getNonNegativeValue(json['nbPlinonTraites']);
+    int nbPliRejected = _getNonNegativeValue(json['nbPliRejected']);
+    int nbpliexporte = _getNonNegativeValue(json['nbpliexporte']);
+    int plisavecencours = _getNonNegativeValue(json['plisavecencours']);
+    int nbLotsreco = _getNonNegativeValue(json['nbLotsreco']);
 
     return ResultModel(
       title: json['enseigne'] ?? "Inconnu",
       color: 0xFF000000, // Couleur par défaut
       lotsEnCours: "$nbLotencours / $plisencours",
       lotsDuJour: "$lotjour / $plijour",
-      traite: (json['pliTraites'] ?? 0) < 0 ? 0 : json['pliTraites'],
-      nonTraite: (json['nbPlinonTraites'] ?? 0) < 0 ? 0 : json['nbPlinonTraites'],
-      rejet: (json['nbPliRejected'] ?? 0) < 0 ? 0 : json['nbPliRejected'],
-      export: (json['nbpliexporte'] ?? 0) < 0 ? 0 : json['nbpliexporte'],
-      total: (json['plisavecencours'] ?? 0) < 0 ? 0 : json['plisavecencours'],
-      reco: (json['nbLotsreco'] ?? 0) < 0 ? 0 : json['nbLotsreco'],
+      traite: pliTraites,
+      nonTraite: nbPlinonTraites,
+      rejet: nbPliRejected,
+      export: nbpliexporte,
+      total: plisavecencours,
+      reco: nbLotsreco,
     );
   }
 }

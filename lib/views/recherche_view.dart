@@ -5,7 +5,7 @@ import '../controllers/recherche_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../views/result_display_screen.dart';
 
-
+/// Page principale de recherche avec filtrage et sélection de période.
 class RecherchePage extends StatefulWidget {
   const RecherchePage({super.key});
 
@@ -14,56 +14,63 @@ class RecherchePage extends StatefulWidget {
 }
 
 class RecherchePageState extends State<RecherchePage> {
+  // Liste des états des cases à cocher pour les enseignes
   List<bool> checkboxValues = [];
+
+  // Indicateur pour savoir si toutes les enseignes sont sélectionnées
   bool _toutesSelected = true;
+
+  // Dates de début et de fin sélectionnées
   DateTime _dateDebut = DateTime.now();
   DateTime _dateFin = DateTime.now();
+
+  // Liste des labels pour les enseignes
   List<String> checkboxLabels = [];
+
+  // Indicateur de chargement
   bool isLoading = true;
+
+  // Contrôleur pour la recherche des enseignes
   late RechercheController controller;
-  
 
-@override
-void initState() {
-  super.initState();
-  controller = RechercheController(Provider.of<ApiService>(context, listen: false));
+  @override
+  void initState() {
+    super.initState();
+    // Initialisation du contrôleur avec le service API
+    controller = RechercheController(Provider.of<ApiService>(context, listen: false));
 
-  // Assurez-vous que le contexte est bien construit avant d'appeler une mise à jour de l'état
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _loadEnseignes();
-  });
-}
-
-
-
-
- Future<void> _loadEnseignes() async {
-  try {
-    final enseignes = await controller.fetchEnseignes(context);
-
-    // Utilisation de addPostFrameCallback pour différer setState()
+    // Chargement des enseignes après que l'interface soit initialisée
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        checkboxLabels = enseignes.map((e) => e.name).toList();
-        checkboxValues = List.filled(checkboxLabels.length, true);
-        isLoading = false;
-      });
-    });
-  } catch (e) {
-    // Gérer l'erreur après le rendu du widget
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
-      );
+      _loadEnseignes();
     });
   }
-}
 
+  /// Fonction pour charger les enseignes via le contrôleur.
+  Future<void> _loadEnseignes() async {
+    try {
+      final enseignes = await controller.fetchEnseignes(context);
 
+      // Mise à jour de l'état après la récupération des enseignes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          checkboxLabels = enseignes.map((e) => e.name).toList();
+          checkboxValues = List.filled(checkboxLabels.length, true);
+          isLoading = false;
+        });
+      });
+    } catch (e) {
+      // En cas d'erreur, on affiche un message d'erreur
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : $e')),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +83,7 @@ void initState() {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
+              // Déconnexion de l'utilisateur
               authController.logout();
               Navigator.pushReplacementNamed(context, '/login');
             },
@@ -83,24 +91,24 @@ void initState() {
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator()) // Affichage du loader pendant le chargement
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildPeriodSelectionCard(),
-                  const SizedBox(height: 16),
-                  _buildFilterOptionsCard(),
-                  const SizedBox(height: 16),
-                  _buildSearchButton(),
-                ],
-              ),
-            ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildPeriodSelectionCard(),
+            const SizedBox(height: 16),
+            _buildFilterOptionsCard(),
+            const SizedBox(height: 16),
+            _buildSearchButton(),
+          ],
+        ),
+      ),
     );
   }
 
-  // Carte de sélection de période
+  // Carte pour la sélection de la période de recherche
   Widget _buildPeriodSelectionCard() {
     return _buildCard(
       title: 'Sélectionnez une période',
@@ -114,6 +122,7 @@ void initState() {
     );
   }
 
+  // Description de la période
   Widget _buildPeriodDescription() {
     return Text(
       'Veuillez choisir une date de début et une date de fin pour effectuer la recherche.',
@@ -121,7 +130,7 @@ void initState() {
     );
   }
 
-  // Carte d'options de filtrage
+  // Carte pour les options de filtrage
   Widget _buildFilterOptionsCard() {
     return _buildCard(
       title: 'Options de filtrage',
@@ -137,6 +146,7 @@ void initState() {
     );
   }
 
+  // Description des options de filtrage
   Widget _buildFilterDescription() {
     return Text(
       'Utilisez le switch "Toutes" pour sélectionner ou désélectionner toutes les options.',
@@ -144,14 +154,15 @@ void initState() {
     );
   }
 
+  // Bouton pour lancer la recherche
   Widget _buildSearchButton() {
     return ElevatedButton.icon(
       onPressed: () {
+        // Vérification des dates avant de lancer la recherche
         if (_dateFin.isBefore(_dateDebut)) {
-          // Vérifier la validité des dates
           _showErrorDialog('La date de fin ne peut pas être antérieure à la date de début.');
         } else {
-          // Naviguer vers la page des résultats avec les paramètres de recherche
+          // Naviguer vers l'écran des résultats avec les paramètres de recherche
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -173,7 +184,7 @@ void initState() {
     );
   }
 
-  // Afficher un dialogue d'erreur
+  // Affichage d'un message d'erreur dans une boîte de dialogue
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -213,7 +224,7 @@ void initState() {
     );
   }
 
-  // Sélecteurs de date (début et fin)
+  // Sélecteurs de dates (début et fin)
   Row _buildDateSelectors() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,6 +236,7 @@ void initState() {
     );
   }
 
+  // Sélecteur de date avec étiquette et icône de calendrier
   Expanded _buildDateSelector(String label, DateTime date, bool isStartDate) {
     return Expanded(
       child: Column(
@@ -288,6 +300,7 @@ void initState() {
     );
   }
 
+  // Case à cocher pour une enseigne donnée
   Widget _buildCheckbox(String label, bool value, int index) {
     return Row(
       children: [
@@ -296,6 +309,7 @@ void initState() {
           onChanged: (bool? newValue) {
             setState(() {
               checkboxValues[index] = newValue!;
+              // Mise à jour de l'état du switch "Toutes"
               _toutesSelected = checkboxValues.every((val) => val);
             });
           },
@@ -306,14 +320,14 @@ void initState() {
     );
   }
 
-List<String> _getSelectedEnseignes() {
-  return List.generate(checkboxLabels.length, (index) {
-    return checkboxValues[index] ? checkboxLabels[index] : null;
-  }).whereType<String>().toList(); // Évite les valeurs null
-}
+  // Récupère les enseignes sélectionnées
+  List<String> _getSelectedEnseignes() {
+    return List.generate(checkboxLabels.length, (index) {
+      return checkboxValues[index] ? checkboxLabels[index] : null;
+    }).whereType<String>().toList(); // Évite les valeurs null
+  }
 
-
-  // Sélecteur de date
+  // Sélectionne une date via le picker
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/enseigne.dart'; // Modèle Enseigne
+import '../models/enseigne.dart';
 import 'package:intl/intl.dart';
 
 class ApiService {
@@ -8,7 +8,9 @@ class ApiService {
 
   ApiService(this.baseUrl);
 
-  /// Authentifie l'utilisateur et retourne un token
+  // --- Authentification ---
+  // Cette méthode envoie les informations de connexion (nom d'utilisateur et mot de passe)
+  // pour obtenir un token d'authentification.
   Future<String?> authenticate(String username, String password) async {
     final url = Uri.parse('$baseUrl/AuthManagement/Login');
 
@@ -21,45 +23,49 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data["token"];
+        return data["token"];  // Retourne le token en cas de succès
       } else {
         print("Erreur de connexion : ${response.body}");
-        return null;
+        return null;  // Retourne null en cas d'erreur
       }
     } catch (e) {
       print("Erreur lors de l'authentification : $e");
-      return null;
+      return null;  // Retourne null en cas d'exception
     }
   }
 
-  /// Récupère les résultats entre deux dates pour une enseigne donnée
-Future<List<dynamic>?> fetchResults(String token, DateTime dateFrom, DateTime dateTo, String enseignes) async {
-  final url = Uri.parse('$baseUrl/Preview/previews').replace(queryParameters: {
-    "Datefrom": DateFormat("dd/MM/yyyy").format(dateFrom), // Formatage ici
-    "Dateto": DateFormat("dd/MM/yyyy").format(dateTo),     // Formatage ici
-    "Enseignes": enseignes,
-  });
+  // --- Récupération des résultats ---
+  // Cette méthode récupère les résultats entre deux dates pour une ou plusieurs enseignes.
+  // Elle prend en paramètre un token d'authentification et formate les dates selon un format spécifique.
+  Future<List<dynamic>?> fetchResults(String token, DateTime dateFrom, DateTime dateTo, String enseignes) async {
+    final url = Uri.parse('$baseUrl/Preview/previews').replace(queryParameters: {
+      "Datefrom": DateFormat("dd/MM/yyyy").format(dateFrom),  // Formatage de la date de début
+      "Dateto": DateFormat("dd/MM/yyyy").format(dateTo),      // Formatage de la date de fin
+      "Enseignes": enseignes,  // Liste des enseignes filtrées
+    });
 
-  try {
-    final response = await http.get(
-      url,
-      headers: {"Authorization": "Bearer $token"},
-    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {"Authorization": "Bearer $token"},  // Envoi du token dans l'en-tête
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['data'];
-    } else {
-      print("Erreur API : ${response.body}");
-      return null;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['data'];  // Retourne les résultats sous forme de liste
+      } else {
+        print("Erreur API : ${response.body}");
+        return null;  // Retourne null en cas d'erreur
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des résultats : $e");
+      return null;  // Retourne null en cas d'exception
     }
-  } catch (e) {
-    print("Erreur lors de la récupération des résultats : $e");
-    return null;
   }
-}
 
-  /// Récupère la liste des enseignes
+  // --- Récupération de la liste des enseignes ---
+  // Cette méthode récupère la liste des enseignes disponibles et les retourne sous forme de liste d'objets Enseigne.
+  // Elle prend un token pour l'authentification.
   Future<List<Enseigne>> fetchEnseignes(String token) async {
     final url = Uri.parse('$baseUrl/Preview/enseigneList');
 
@@ -67,7 +73,7 @@ Future<List<dynamic>?> fetchResults(String token, DateTime dateFrom, DateTime da
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',  // Envoi du token dans l'en-tête
           'Content-Type': 'application/json',
         },
       );
@@ -81,9 +87,9 @@ Future<List<dynamic>?> fetchResults(String token, DateTime dateFrom, DateTime da
             // Mapping des données en objets Enseigne
             return data.map((item) {
               if (item is String) {
-                return Enseigne(name: item);
+                return Enseigne(name: item);  // Si l'élément est une chaîne, on crée un objet Enseigne
               } else if (item is Map<String, dynamic>) {
-                // Si l'item est un objet complexe, ajustez ce mapping selon votre modèle
+                // Si l'élément est un objet complexe, on mappe les propriétés en objet Enseigne
                 return Enseigne(name: item['name'] ?? 'Nom inconnu');
               }
               throw Exception('Format inattendu pour un item de la liste des enseignes');
