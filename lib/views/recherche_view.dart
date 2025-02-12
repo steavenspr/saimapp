@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../controllers/recherche_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../views/result_display_screen.dart';
+import 'package:intl/intl.dart';
 
 /// Page principale de recherche avec filtrage et sélection de période.
 class RecherchePage extends StatefulWidget {
@@ -255,7 +256,7 @@ class RecherchePageState extends State<RecherchePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${date.toLocal()}'.split(' ')[0]),
+                  Text(DateFormat('dd/MM/yyyy').format(date)),
                   Icon(Icons.calendar_today, color: Colors.blue),
                 ],
               ),
@@ -333,11 +334,12 @@ class RecherchePageState extends State<RecherchePage> {
       context: context,
       initialDate: isStartDate ? _dateDebut : _dateFin,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now(),
     );
 
     if (picked != null) {
       setState(() {
+        DateFormat('dd/MM/yyyy').format(picked);
         if (isStartDate) {
           _dateDebut = picked;
         } else {
