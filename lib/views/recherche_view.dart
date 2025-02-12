@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 import 'package:provider/provider.dart';
+import '../services/api_service.dart';
 import '../controllers/recherche_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../views/result_display_screen.dart';
@@ -59,12 +59,10 @@ class RecherchePageState extends State<RecherchePage> {
         });
       });
     } catch (e) {
-      // En cas d'erreur, on affiche un message d'erreur
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           isLoading = false;
         });
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur : $e')),
         );
@@ -93,18 +91,18 @@ class RecherchePageState extends State<RecherchePage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator()) // Affichage du loader pendant le chargement
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildPeriodSelectionCard(),
-            const SizedBox(height: 16),
-            _buildFilterOptionsCard(),
-            const SizedBox(height: 16),
-            _buildSearchButton(),
-          ],
-        ),
-      ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildPeriodSelectionCard(),
+                  const SizedBox(height: 16),
+                  _buildFilterOptionsCard(),
+                  const SizedBox(height: 16),
+                  _buildSearchButton(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -115,7 +113,7 @@ class RecherchePageState extends State<RecherchePage> {
       content: Column(
         children: [
           _buildPeriodDescription(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildDateSelectors(),
         ],
       ),
@@ -137,9 +135,9 @@ class RecherchePageState extends State<RecherchePage> {
       content: Column(
         children: [
           _buildFilterDescription(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildSwitchToutes(),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildCheckboxGrid(),
         ],
       ),
@@ -154,32 +152,39 @@ class RecherchePageState extends State<RecherchePage> {
     );
   }
 
-  // Bouton pour lancer la recherche
+  // Bouton pour lancer la recherche avec vérification des enseignes sélectionnées
   Widget _buildSearchButton() {
     return ElevatedButton.icon(
       onPressed: () {
-        // Vérification des dates avant de lancer la recherche
+        // Vérification des dates
         if (_dateFin.isBefore(_dateDebut)) {
           _showErrorDialog('La date de fin ne peut pas être antérieure à la date de début.');
-        } else {
-          // Naviguer vers l'écran des résultats avec les paramètres de recherche
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultDisplayScreen(
-                dateDebut: _dateDebut,
-                dateFin: _dateFin,
-                enseignes: _getSelectedEnseignes(),
-              ),
-            ),
-          );
+          return;
         }
+        // Vérification que l'utilisateur a sélectionné au moins une enseigne
+        List<String> selectedEnseignes = _getSelectedEnseignes();
+        if (selectedEnseignes.isEmpty) {
+          _showErrorDialog('Veuillez sélectionner au moins une enseigne.');
+          return;
+        }
+
+        // Si tout est valide, naviguer vers l'écran des résultats
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResultDisplayScreen(
+              dateDebut: _dateDebut,
+              dateFin: _dateFin,
+              enseignes: selectedEnseignes,
+            ),
+          ),
+        );
       },
-      icon: Icon(Icons.search, color: Colors.white),
-      label: Text('Rechercher', style: TextStyle(color: Colors.white)),
+      icon: const Icon(Icons.search, color: Colors.white),
+      label: const Text('Rechercher', style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
-        minimumSize: Size(double.infinity, 50),
+        minimumSize: const Size(double.infinity, 50),
       ),
     );
   }
@@ -190,14 +195,14 @@ class RecherchePageState extends State<RecherchePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Erreur'),
+          title: const Text('Erreur'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -215,8 +220,8 @@ class RecherchePageState extends State<RecherchePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
             content,
           ],
         ),
@@ -230,7 +235,7 @@ class RecherchePageState extends State<RecherchePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildDateSelector('Date Début', _dateDebut, true),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         _buildDateSelector('Date Fin', _dateFin, false),
       ],
     );
@@ -242,12 +247,12 @@ class RecherchePageState extends State<RecherchePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
           GestureDetector(
             onTap: () => _selectDate(context, isStartDate),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8),
@@ -256,7 +261,7 @@ class RecherchePageState extends State<RecherchePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${date.toLocal()}'.split(' ')[0]),
-                  Icon(Icons.calendar_today, color: Colors.blue),
+                  const Icon(Icons.calendar_today, color: Colors.blue),
                 ],
               ),
             ),
@@ -271,7 +276,7 @@ class RecherchePageState extends State<RecherchePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Toutes', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Toutes', style: TextStyle(fontWeight: FontWeight.bold)),
         Switch(
           value: _toutesSelected,
           onChanged: (bool value) {
@@ -315,7 +320,7 @@ class RecherchePageState extends State<RecherchePage> {
           },
           activeColor: Colors.blue,
         ),
-        Expanded(child: Text(label, softWrap: true, style: TextStyle(fontSize: 12))),
+        Expanded(child: Text(label, softWrap: true, style: const TextStyle(fontSize: 12))),
       ],
     );
   }
